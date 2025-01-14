@@ -14,14 +14,49 @@ Interactive Graphql client for neovim
 ```lua
 {
   "letieu/graphql.nvim",
+  keys = {
+    {
+      "<leader>gg",
+      function()
+        require("graphql").open()
+      end,
+      desc = "graphql - Open",
+    },
+    {
+      "<leader>gq",
+      function()
+        require("graphql").close()
+      end,
+    },
+    {
+      "<leader>gr",
+      function()
+        require("graphql").run()
+      end,
+    }
+  },
 }
 ```
 
+* Lsp for autocomplete
+```lua
+-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#graphql 
+require'lspconfig'.graphql.setup{}
+```
+
+* Install treesitter for syntax highlight: `:TSInstall graphql`
+ 
+
 ## Usage
 
-**Open**
+1. create new collection
+2. update `.graphqlrc.json` file [docs](https://the-guild.dev/graphql/config/docs) and save
+3. run the query
+
 ```lua
 require('graphql').open()
+require('graphql').close()
+require('graphql').run()
 ```
 
 ## Config
