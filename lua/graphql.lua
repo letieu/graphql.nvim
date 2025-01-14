@@ -15,11 +15,18 @@ local State = {
     query = nil,
     result = nil,
   },
-  options = {
-  },
+  graphql_config = {},
+  options = {},
 }
 
 local prefix_path = vim.fn.stdpath('data') .. '/graphql.nvim'
+
+local GRAPHQL_CONFIG_FILE_NAME = '.graphqlrc.json'
+local DEFAULT_QUERY_FILE_NAME = 'default.gql'
+local DEFAULT_GRAPHQL_CONFIG = {
+  schema = 'https://rickandmortyapi.com/graphql',
+  url = 'https://rickandmortyapi.com/graphql',
+}
 
 Helper.config_result_buffer = function(buf)
   vim.api.nvim_set_option_value('filetype', 'json', {
@@ -290,13 +297,24 @@ M.select_collection = function(name)
   vim.api.nvim_command('cd ' .. collection_path)
 
   -- Try to load the default query
-  local default_query = collection_path .. '/default.gql'
+  local default_query = collection_path .. '/' .. DEFAULT_QUERY_FILE_NAME
   Helper.open_file(default_query)
+
+  -- Set the url
+  local default_config = collection_path .. '/' .. GRAPHQL_CONFIG_FILE_NAME
+  if vim.fn.filereadable(default_config) == 1 then
+    State.graphql_config = vim.fn.json_decode(vim.fn.join(vim.fn.readfile(default_config)))
+  end
 end
 
 M.run = function()
   -- clear the result buffer
   vim.api.nvim_buf_set_lines(State.buffers.result, 0, -1, false, {})
+
+  if State.graphql_config.url == nil then
+    vim.notify('URL is not set, please set the `url` in' .. GRAPHQL_CONFIG_FILE_NAME, 1, {})
+    return
+  end
 
   local query_bufnr = vim.api.nvim_win_get_buf(State.wins.query)
 
@@ -305,7 +323,7 @@ M.run = function()
 
   local cmd = string.format('curl -sS -X POST -H "Content-Type: application/json" -d \'%s\' %s',
     vim.fn.json_encode({ query = query }),
-    'https://rickandmortyapi.com/graphql'
+    State.graphql_config.url
   )
 
   local start = vim.fn.reltime()
@@ -330,14 +348,11 @@ M.add_collection = function()
   end
 
   -- init the default config file and default query file
-  local default_config = collection_path .. '/.graphqlrc.json'
+  local default_config = collection_path .. '/' .. GRAPHQL_CONFIG_FILE_NAME
   if vim.fn.filereadable(default_config) == 0 then
-    local default_config_content = {
-      schema = 'https://rickandmortyapi.com/graphql',
-    }
-    vim.fn.writefile({ vim.fn.json_encode(default_config_content) }, default_config)
+    vim.fn.writefile({ vim.fn.json_encode(DEFAULT_GRAPHQL_CONFIG) }, default_config)
   end
-  local default_query = collection_path .. '/default.gql'
+  local default_query = collection_path .. '/' .. DEFAULT_QUERY_FILE_NAME
   if vim.fn.filereadable(default_query) == 0 then
     vim.fn.writefile({ '# Write your query here' }, default_query)
   end
@@ -355,6 +370,26 @@ M.open_file = function()
   local collection_path = prefix_path .. '/collections/' .. State.selected_collection
   local file_path = collection_path .. '/' .. line
   Helper.open_file(file_path)
+
+  if line == GRAPHQL_CONFIG_FILE_NAME then
+    vim.api.nvim_clear_autocmds({
+      buffer = vim.api.nvim_get_current_buf(),
+      event = 'BufWritePost',
+    })
+    -- add autocmd to reload the config
+    vim.api.nvim_create_autocmd('BufWritePost', {
+      buffer = vim.api.nvim_get_current_buf(),
+      callback = function()
+        local default_config = prefix_path ..
+            '/collections/' .. State.selected_collection .. '/' .. GRAPHQL_CONFIG_FILE_NAME
+        State.graphql_config = vim.fn.json_decode(vim.fn.join(vim.fn.readfile(default_config)))
+        vim.notify('Config reloaded', 1, {})
+
+        -- reload the lspconfig
+        vim.api.nvim_command('LspRestart')
+      end,
+    })
+  end
 end
 
 M.add_query_file = function()
