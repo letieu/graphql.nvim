@@ -2,7 +2,7 @@
 
 Interactive Graphql client for neovim
 
-![image](https://github.com/user-attachments/assets/f774ce64-e328-4bae-a3cb-f27e689d9bf1)
+![image](https://github.com/user-attachments/assets/7b3288a4-8bee-4e44-82de-c2dae76144eb)
 
 
 > [!CAUTION]
