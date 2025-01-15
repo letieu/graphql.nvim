@@ -82,7 +82,7 @@ require('graphql').setup({
 
 ```
 ## TODO:
-- [ ] Handle var
-- [ ] Handle header
+- [x] Handle var
+- [x] Handle header
 - [ ] Handle environment
 
