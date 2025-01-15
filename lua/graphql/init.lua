@@ -19,14 +19,29 @@ query {
 
 local M = {}
 
+---@class State
+---@field ns_id integer | nil
+---@field tab integer | nil
+---@field selected_collection string | nil
+---@field collections table
+---@field buffers table
+---@field buffers.list_collection integer | nil
+---@field buffers.collection integer | nil
+---@field buffers.result integer | nil
+---@field wins table
+---@field wins.sidebar integer | nil
+---@field wins.query integer | nil
+---@field wins.result integer | nil
+---@field graphql_config table
+---@field options table
+---@field options.prefix_path string
 local State = {
-  ns_id = nil,
   tab = nil,
   selected_collection = nil,
   collections = {},
   buffers = {
-    list_collection = nil,
-    collection = nil,
+    list_collection = nil, -- list collection show on the sidebar
+    collection = nil,      -- list files in the collection, show on the sidebar
     result = nil,
   },
   wins = {
