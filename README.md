@@ -64,8 +64,13 @@ require('graphql').run()
 
 ```lua
 -- TODO:
+require('graphql').setup({
+    prefix_path = vim.fn.stdpath('data') .. '/graphql.nvim',
+})
+
 ```
 ## TODO:
 - [ ] Handle var
+- [ ] Handle header
 - [ ] Handle environment
 
