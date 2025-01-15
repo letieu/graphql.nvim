@@ -4,8 +4,6 @@ Interactive Graphql client for neovim
 
 ![image](https://github.com/user-attachments/assets/57ac520e-b6ce-4e92-b179-b1cefabd8ec7)
 
-
-
 > [!CAUTION]
 > Currently, this plugin is under development. It may not work as expected.
 
@@ -67,3 +65,7 @@ require('graphql').run()
 ```lua
 -- TODO:
 ```
+## TODO:
+- [ ] Handle var
+- [ ] Handle environment
+
