@@ -48,7 +48,22 @@ State.get_selected_collection_path = function()
   return State.get_collections_path() .. '/' .. State.selected_collection
 end
 
+State.load_graphql_config = function()
+  local graphql_config = State.get_selected_collection_path() .. '/' .. GRAPHQL_CONFIG_FILE_NAME
+  if vim.fn.filereadable(graphql_config) == 1 then
+    State.graphql_config = vim.fn.json_decode(vim.fn.join(vim.fn.readfile(graphql_config)))
+  end
+end
+
+State.get_query = function()
+  local query_bufnr = vim.api.nvim_win_get_buf(State.wins.query)
+  local lines = vim.api.nvim_buf_get_lines(query_bufnr, 0, -1, false)
+  local query = table.concat(lines, '\n')
+  return query
+end
+
 M.setup = function(options)
+  State.options = vim.tbl_extend('force', State.options, options)
 end
 
 M.open = function()
@@ -130,11 +145,7 @@ M.select_collection = function()
   -- Set pwd to the collection path
   vim.api.nvim_command('cd ' .. State.get_selected_collection_path())
 
-  -- Load the graphql config
-  local graphql_config = State.get_selected_collection_path() .. '/' .. GRAPHQL_CONFIG_FILE_NAME
-  if vim.fn.filereadable(graphql_config) == 1 then
-    State.graphql_config = vim.fn.json_decode(vim.fn.join(vim.fn.readfile(graphql_config)))
-  end
+  State.load_graphql_config()
 
   -- Try to load the default query
   local default_query = State.get_selected_collection_path() .. '/' .. DEFAULT_QUERY_FILE_NAME
@@ -160,11 +171,7 @@ M.run = function()
     return
   end
 
-  local query_bufnr = vim.api.nvim_win_get_buf(State.wins.query)
-
-  local lines = vim.api.nvim_buf_get_lines(query_bufnr, 0, -1, false)
-  local query = table.concat(lines, '\n')
-
+  local query = State.get_query()
   local cmd = string.format('curl -sS -X POST -H "Content-Type: application/json" -d \'%s\' %s',
     vim.fn.json_encode({ query = query }),
     State.graphql_config.url
