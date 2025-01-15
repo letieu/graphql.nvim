@@ -32,6 +32,7 @@ local M = {}
 ---@field wins.sidebar integer | nil
 ---@field wins.query integer | nil
 ---@field wins.result integer | nil
+---@field wins.vars integer | nil
 ---@field graphql_config table
 ---@field options table
 ---@field options.prefix_path string
@@ -48,6 +49,7 @@ local State = {
     sidebar = nil,
     query = nil,
     result = nil,
+    vars = nil,
   },
   graphql_config = {},
   options = {
@@ -63,6 +65,14 @@ State.get_selected_collection_path = function()
   return State.get_collections_path() .. '/' .. State.selected_collection
 end
 
+State.get_vars_folder_path = function()
+  return State.get_selected_collection_path() .. '/vars'
+end
+
+State.get_var_path = function(query_name)
+  return State.get_vars_folder_path() .. '/' .. query_name .. '.json'
+end
+
 State.load_graphql_config = function()
   local graphql_config = State.get_selected_collection_path() .. '/' .. GRAPHQL_CONFIG_FILE_NAME
   if vim.fn.filereadable(graphql_config) == 1 then
@@ -73,8 +83,20 @@ end
 State.get_query = function()
   local query_bufnr = vim.api.nvim_win_get_buf(State.wins.query)
   local lines = vim.api.nvim_buf_get_lines(query_bufnr, 0, -1, false)
-  local query = table.concat(lines, '\n')
-  return query
+  return table.concat(lines, '\n')
+end
+
+State.get_vars = function()
+  local var_bufnr = vim.api.nvim_win_get_buf(State.wins.vars)
+  local lines = vim.api.nvim_buf_get_lines(var_bufnr, 0, -1, false)
+  local json_str = table.concat(lines, '\n')
+
+  local success, result = pcall(vim.fn.json_decode, json_str)
+  if success then
+    return result
+  else
+    return nil
+  end
 end
 
 M.setup = function(options)
@@ -95,8 +117,10 @@ M.open = function()
   vim.api.nvim_command('tabnew')
   State.tab = vim.api.nvim_get_current_tabpage()
 
+  -- query
   State.wins.query = vim.api.nvim_get_current_win()
 
+  -- sidebar
   State.buffers.list_collection = State.buffers.list_collection or vim.api.nvim_create_buf(false, true)
   State.buffers.collection = State.buffers.collection or vim.api.nvim_create_buf(false, true)
   State.wins.sidebar = vim.api.nvim_open_win(State.buffers.list_collection, false, {
@@ -105,6 +129,7 @@ M.open = function()
   })
   Helper.config_sidebar(State.buffers.list_collection, State.buffers.collection, State.wins.sidebar)
 
+  -- result
   State.buffers.result = vim.api.nvim_create_buf(false, true)
   State.wins.result = vim.api.nvim_open_win(State.buffers.result, false, {
     split = 'right',
@@ -165,6 +190,24 @@ M.select_collection = function()
   -- Try to load the default query
   local default_query = State.get_selected_collection_path() .. '/' .. DEFAULT_QUERY_FILE_NAME
   Helper.open_file(default_query, State.wins.query)
+
+  -- Open the vars window
+  if State.wins.vars == nil then
+    State.wins.vars = vim.api.nvim_open_win(0, false, {
+      height = 15,
+      split = 'below',
+    })
+  end
+
+  local vars_folder = State.get_vars_folder_path()
+  if vim.fn.isdirectory(vars_folder) == 0 then
+    vim.fn.mkdir(vars_folder, 'p')
+  end
+
+  local var_path = State.get_var_path(DEFAULT_QUERY_FILE_NAME)
+  vim.api.nvim_win_call(State.wins.vars, function()
+    vim.api.nvim_command('e ' .. var_path)
+  end)
 end
 
 M.run = function()
@@ -187,8 +230,9 @@ M.run = function()
   end
 
   local query = State.get_query()
+  local vars = State.get_vars() or {}
   local cmd = string.format('curl -sS -X POST -H "Content-Type: application/json" -d \'%s\' %s',
-    vim.fn.json_encode({ query = query }),
+    vim.fn.json_encode({ query = query, variables = vars }),
     State.graphql_config.url
   )
 
