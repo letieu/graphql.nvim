@@ -2,7 +2,8 @@
 
 Interactive Graphql client for neovim
 
-![image](https://github.com/user-attachments/assets/57ac520e-b6ce-4e92-b179-b1cefabd8ec7)
+![image](https://github.com/user-attachments/assets/7d71426b-47e9-45d7-a565-f0ef62529780)
+
 
 > [!CAUTION]
 > Currently, this plugin is under development. It may not work as expected.
