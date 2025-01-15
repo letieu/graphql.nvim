@@ -58,6 +58,17 @@ require('graphql').close()
 require('graphql').run()
 ```
 
+* example  `.graphqlrc.json` file
+```json
+{
+  "schema": "https://rickandmortyapi.com/graphql",
+  "url": "https://rickandmortyapi.com/graphql",
+  "headers": {
+    "Authorization": "Bearer abc"
+  }
+}
+```
+
 ## Config
 
 **Default config**

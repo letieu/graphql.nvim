@@ -231,10 +231,26 @@ M.run = function()
 
   local query = State.get_query()
   local vars = State.get_vars() or {}
-  local cmd = string.format('curl -sS -X POST -H "Content-Type: application/json" -d \'%s\' %s',
-    vim.fn.json_encode({ query = query, variables = vars }),
-    State.graphql_config.url
-  )
+
+  local cmd = ''
+  local headers = State.graphql_config.headers
+  if headers == nil then
+    cmd = string.format('curl -sS -X POST -H "Content-Type: application/json" -d \'%s\' %s',
+      vim.fn.json_encode({ query = query, variables = vars }),
+      State.graphql_config.url
+    )
+  else
+    local headers_str = ''
+    for key, value in pairs(headers) do
+      headers_str = headers_str .. string.format(' -H "%s: %s"', key, value)
+    end
+
+    cmd = string.format('curl -sS -X POST %s -H "Content-Type: application/json" -d \'%s\' %s',
+      headers_str,
+      vim.fn.json_encode({ query = query, variables = vars }),
+      State.graphql_config.url
+    )
+  end
 
   local start = vim.fn.reltime()
   local result = vim.fn.system(cmd)
