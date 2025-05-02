@@ -186,7 +186,8 @@ Helper.show_elapse = function(elapsed, buf, ns_id)
   )
 end
 
-Helper.render_query_help = function(buf, ns_id)
+Helper.render_var_help = function(buf, ns_id)
+  -- show help text at the top right corner
   vim.api.nvim_buf_set_extmark(
     buf,
     ns_id,
@@ -194,8 +195,9 @@ Helper.render_query_help = function(buf, ns_id)
     0,
     {
       virt_text = {
-        { '"<leader>r" to run', 'Comment' },
+        { 'Variables', 'Label' },
       },
+      virt_text_pos = 'right_align',
     }
   )
 end
@@ -203,7 +205,11 @@ end
 Helper.format_result = function(buf)
   local status, conform = pcall(require, 'conform')
   if not status then
-    vim.api.nvim_notify('conform is not installed', 1, {})
+    vim.notify(
+      'conform.nvim not found, please install it to format the result buffer',
+      vim.log.levels.WARN,
+      { title = 'GraphQL' }
+    )
   else
     conform.format { async = true, lsp_fallback = true, bufnr = buf }
   end

@@ -209,6 +209,9 @@ M.select_collection = function()
   vim.api.nvim_win_call(State.wins.vars, function()
     vim.api.nvim_command('e ' .. var_path)
   end)
+
+  local var_bufnr = vim.api.nvim_win_get_buf(State.wins.vars)
+  Helper.render_var_help(var_bufnr, State.ns_id)
 end
 
 M.run = function()
