@@ -95,6 +95,7 @@ State.get_vars = function()
   if success then
     return result
   else
+    vim.notify('Invalid JSON in vars file', 1, {})
     return nil
   end
 end
