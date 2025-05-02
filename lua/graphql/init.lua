@@ -261,7 +261,7 @@ M.run = function()
   local elapsed = vim.fn.reltime(start)
 
   vim.api.nvim_buf_set_lines(State.buffers.result, 0, -1, false, vim.fn.split(result, '\n'))
-  Helper.format_result(State.buffers.result)
+  Helper.format_buffer(State.buffers.result)
   Helper.show_elapse(elapsed, State.buffers.result, State.ns_id)
 end
 
@@ -324,6 +324,9 @@ M.open_file = function()
         vim.notify('Config reloaded', 1, {})
       end,
     })
+
+    local config_bufnr = vim.api.nvim_get_current_buf()
+    Helper.format_buffer(config_bufnr)
   end
 end
 

@@ -45,7 +45,7 @@ require'lspconfig'.graphql.setup{}
 ```
 
 * Install treesitter for syntax highlight: `:TSInstall graphql`
- 
+* Install [conform.nvim](https://github.com/stevearc/conform.nvim) for format query, var, result
 
 ## Usage
 

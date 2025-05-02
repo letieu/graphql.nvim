@@ -202,7 +202,7 @@ Helper.render_var_help = function(buf, ns_id)
   )
 end
 
-Helper.format_result = function(buf)
+Helper.format_buffer = function(buf)
   local status, conform = pcall(require, 'conform')
   if not status then
     vim.notify(
